@@ -1,5 +1,4 @@
-# splitter.py
-# This file calculates who owes how much to whom
+
 
 def calculate_splits(members, expenses):
     """

@@ -1,5 +1,4 @@
-# app.py
-# Main Flask application - runs the web server
+
 
 from flask import Flask, render_template, request, jsonify, session
 from splitter import calculate_splits
@@ -15,12 +14,12 @@ group_data = {
     'expenses': []   # list of {paid_by, amount, description}
 }
 
-# ===== HOME PAGE =====
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# ===== ADD MEMBER =====
+
 @app.route('/add_member', methods=['POST'])
 def add_member():
     data = request.json
@@ -28,14 +27,14 @@ def add_member():
     phone = data.get('phone', '').strip()
     if not name or not phone:
         return jsonify({'success': False, 'message': 'Name and phone required'})
-    # Check duplicate
+   
     for m in group_data['members']:
         if m['name'].lower() == name.lower():
             return jsonify({'success': False, 'message': 'Member already exists'})
     group_data['members'].append({'name': name, 'phone': phone})
     return jsonify({'success': True, 'members': group_data['members']})
 
-# ===== ADD EXPENSE =====
+
 @app.route('/add_expense', methods=['POST'])
 def add_expense():
     data = request.json
@@ -51,7 +50,7 @@ def add_expense():
     })
     return jsonify({'success': True, 'expenses': group_data['expenses']})
 
-# ===== CALCULATE SPLITS =====
+
 @app.route('/calculate', methods=['GET'])
 def calculate():
     if len(group_data['members']) < 2:
@@ -62,7 +61,7 @@ def calculate():
     result   = calculate_splits(members, group_data['expenses'])
     return jsonify({'success': True, 'result': result})
 
-# ===== SEND WHATSAPP =====
+
 @app.route('/send_whatsapp', methods=['POST'])
 def send_all_whatsapp():
     if len(group_data['members']) < 2:
@@ -85,13 +84,13 @@ def send_all_whatsapp():
             failed.append(member['name'])
     return jsonify({'success': True, 'sent': sent, 'failed': failed})
 
-# ===== RESET GROUP =====
+
 @app.route('/reset', methods=['POST'])
 def reset():
     group_data['members']  = []
     group_data['expenses'] = []
     return jsonify({'success': True})
 
-# ===== RUN SERVER =====
+
 if __name__ == '__main__':
     app.run(debug=True)

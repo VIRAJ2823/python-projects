@@ -1,5 +1,3 @@
-# whatsapp.py
-# This file handles sending WhatsApp messages via Twilio
 
 import os
 from twilio.rest import Client
@@ -38,7 +36,7 @@ def build_message(name, transactions, total, share):
     msg += f"Your Share: ₹{share}\n"
     msg += f"━━━━━━━━━━━━━━━━\n"
 
-    # Find transactions involving this person
+   
     my_transactions = [t for t in transactions
                        if t['from'] == name or t['to'] == name]
 
