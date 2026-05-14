@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Resume ATS Checker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge"><i class="ti ti-robot"></i> AI Powered</div>
+  <h1>Resume <span class="gradient-text">ATS Checker</span></h1>
+  <p>Upload your resume and instantly find out if it will pass Applicant Tracking Systems used by top companies</p>
+  <div class="hero-stats">
+    <div class="stat"><span>8+</span><p>Job Roles</p></div>
+    <div class="stat"><span>50+</span><p>Keywords Checked</p></div>
+    <div class="stat"><span>100%</span><p>Free</p></div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- LEFT — UPLOAD FORM -->
+  <div class="card upload-card">
+    <div class="card-header">
+      <i class="ti ti-file-upload"></i>
+      <h2>Check Your Resume</h2>
+    </div>
+
+    <!-- FILE DROP ZONE -->
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('resumeFile').click()">
+      <div class="drop-icon"><i class="ti ti-cloud-upload"></i></div>
+      <p class="drop-title">Drop your resume here</p>
+      <p class="drop-sub">or click to browse</p>
+      <p class="drop-types">PDF or DOCX • Max 5MB</p>
+      <input type="file" id="resumeFile" accept=".pdf,.docx" hidden onchange="handleFile(this)"/>
+    </div>
+    <div class="file-selected" id="fileSelected" style="display:none">
+      <i class="ti ti-file-check"></i>
+      <span id="fileName">resume.pdf</span>
+      <button onclick="clearFile()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <!-- JOB ROLE -->
+    <div class="form-group">
+      <label>Target Job Role</label>
+      <div class="select-wrap">
+        <i class="ti ti-briefcase"></i>
+        <select id="jobRole">
+          <option value="">Select a job role...</option>
+          {% for role in job_roles %}
+          <option value="{{ role }}">{{ role }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-analyze" onclick="analyzeResume()" id="analyzeBtn">
+      <i class="ti ti-search"></i>
+      <span>Analyze Resume</span>
+    </button>
+
+    <!-- TIPS -->
+    <div class="tips">
+      <p class="tips-title"><i class="ti ti-bulb"></i> Quick Tips</p>
+      <ul>
+        <li>Use keywords from the job description</li>
+        <li>Keep resume between 300–700 words</li>
+        <li>Use standard section headings</li>
+        <li>Avoid images and complex formatting</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- RIGHT — RESULTS -->
+  <div class="results-area" id="resultsArea">
+
+    <!-- PLACEHOLDER -->
+    <div class="placeholder" id="placeholder">
+      <div class="placeholder-icon"><i class="ti ti-file-analytics"></i></div>
+      <h3>Your Results Will Appear Here</h3>
+      <p>Upload your resume and select a job role to get your ATS score</p>
+    </div>
+
+    <!-- LOADING -->
+    <div class="loading" id="loading" style="display:none">
+      <div class="spinner"></div>
+      <p>Analyzing your resume...</p>
+    </div>
+
+    <!-- RESULT CONTENT -->
+    <div id="resultContent" style="display:none">
+
+      <!-- SCORE CARD -->
+      <div class="card score-card">
+        <div class="score-header">
+          <div>
+            <p class="score-label">Overall ATS Score</p>
+            <p class="score-role" id="scoreRole">Frontend Developer</p>
+          </div>
+          <div class="score-circle-wrap">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#f0efe8" stroke-width="8"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke-width="8"
+                stroke-linecap="round" id="scoreCircle"
+                stroke-dasharray="264" stroke-dashoffset="264"
+                style="transform:rotate(-90deg);transform-origin:50px 50px;transition:stroke-dashoffset 1.2s ease"/>
+            </svg>
+            <div class="score-number">
+              <span id="scoreNum">0</span>
+              <small>%</small>
+            </div>
+          </div>
+        </div>
+        <div class="grade-row">
+          <span class="grade-badge" id="gradeBadge">Good</span>
+          <span class="grade-msg" id="gradeMsg">Your resume is decent but can be improved.</span>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <span id="roleScore">0%</span>
+            <p>Role Match</p>
+          </div>
+          <div class="mini-stat">
+            <span id="generalScore">0%</span>
+            <p>Soft Skills</p>
+          </div>
+          <div class="mini-stat">
+            <span id="wordCount">0</span>
+            <p>Words</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- KEYWORDS FOUND -->
+      <div class="card keywords-card">
+        <div class="card-header">
+          <i class="ti ti-circle-check" style="color:#1D9E75"></i>
+          <h2>Keywords Found</h2>
+        </div>
+        <div class="keyword-tags" id="keywordsFound"></div>
+      </div>
+
+      <!-- KEYWORDS MISSING -->
+      <div class="card keywords-card">
+        <div class="card-header">
+          <i class="ti ti-circle-x" style="color:#E24B4A"></i>
+          <h2>Keywords Missing</h2>
+        </div>
+        <p class="missing-sub">Add these keywords to improve your score</p>
+        <div class="keyword-tags missing" id="keywordsMissing"></div>
+      </div>
+
+      <!-- SUGGESTIONS -->
+      <div class="card suggestions-card">
+        <div class="card-header">
+          <i class="ti ti-bulb" style="color:#BA7517"></i>
+          <h2>Suggestions</h2>
+        </div>
+        <ul class="suggestions-list" id="suggestionsList"></ul>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>Built with 🐍 Python + Flask by <strong>Viraj Balfe</strong></p>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
